@@ -1,0 +1,84 @@
+# Import the Sequential model and layers
+from keras.models import Sequential
+from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Activation, Dropout, Flatten, Dense
+from keras.preprocessing.image import ImageDataGenerator
+from keras import optimizers
+from keras import metrics
+from keras import losses
+from sklearn.metrics import confusion_matrix, classification_report
+import tensorflow as tf
+
+datagen = ImageDataGenerator()
+train_images = datagen.flow_from_directory('C:/Users/priyadharshini/project_work/SAMPLE_ARR/Train/', target_size=(128,128), classes=['normal','abnormal'], batch_size=32)
+test_images = datagen.flow_from_directory('C:/Users/priyadharshini/project_work/SAMPLE_ARR/Test/', target_size=(128,128), classes=['normal','abnormal'], batch_size=32)
+valid_images = datagen.flow_from_directory('C:/Users/priyadharshini/project_work/SAMPLE_ARR/Valid/', target_size=(128,128), classes=['normal','abnormal'], batch_size=32)
+class_labels=['normal','abnormal']
+X_train, y_train = next(train_images)
+X_test, y_test = next(test_images)
+labels_train= train_images.labels
+labels_test= test_images.labels
+model = Sequential()
+model.add(Conv2D(32, (3, 3), input_shape=(128,128,3)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2), padding = 'same'))
+
+model.add(Conv2D(64, (3, 3)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Conv2D(128, (3, 3)))
+model.add(Activation('relu'))
+model.add(MaxPooling2D(pool_size=(2, 2)))
+
+model.add(Flatten())
+model.add(Dense(64))
+model.add(Activation('relu'))
+model.add(Dropout(0.5))
+model.add(Dense(1))
+model.add(Activation('sigmoid'))
+model.compile(optimizer='RMSprop', loss='categorical_crossentropy', metrics=['accuracy'])
+
+FIT THE MODEL ON TRAINING DATA
+# Fit the model on Training data
+hist=model.fit(train_images,
+                    epochs = 3,
+                    validation_data = test_images,
+                    verbose = 1)
+
+EVALUATE
+test_loss,test_acc = model.evaluate(valid_images, verbose=2)
+print("Test accuracy :",test_acc)
+print("Test loss :",test_loss)
+
+from matplotlib import pyplot as plt
+plt.plot(hist.history['loss'])
+plt.plot(hist.history['val_loss'])
+plt.title('model_loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['Train','Validation'], loc='upper left')
+plt.show()
+import numpy as np
+y_test_arg=np.argmax(y_test,axis=1)
+y_pred = np.argmax(model.predict(X_test),axis=1)
+print('confusion_matrix')
+cm=confusion_matrix(y_test_arg,y_pred)
+import seaborn as sns
+plt.figure(figsize=(5,3))
+sns.heatmap(cm, annot=True,cmap=plt.cm.OrRd)
+print(cm)
+CLASSIFICATION REPORT
+
+print('Classification Report')
+print(classification_report(y_test_arg, y_pred))
+
+
+
+
+
+
+<!---
+priyarajendran0302/priyarajendran0302 is a ✨ special ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+You can click the Preview link to take a look at your changes.
+--->
